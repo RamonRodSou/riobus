@@ -1,75 +1,42 @@
-# riobus
+# RioBus API - Monitoramento de Frotas em Tempo Real
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Quarkus](https://img.shields.io/badge/Quarkus-4695EB?style=for-the-badge&logo=quarkus&logoColor=white)
+![Clean Architecture](https://img.shields.io/badge/Architecture-Clean-success?style=for-the-badge)
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Objetivo do Projeto
 
-## Running the application in dev mode
+O **RioBus** é o motor de back-end responsável por fornecer dados de geolocalização e tempo estimado de chegada (ETA) para ônibus em circulação na cidade do Rio de Janeiro.
 
-You can run your application in dev mode that enables live coding using:
+Desenvolvido para alimentar um aplicativo mobile (React Native Expo), o sistema cruza dados abertos de mobilidade urbana com a localização do usuário, entregando informações precisas de rotas e frotas de forma limpa, rápida e sem poluição visual.
 
-```shell script
-./mvnw quarkus:dev
-```
+## Por que este projeto existe?
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+A solução foi idealizada para resolver um problema crônico na experiência de mobilidade urbana: a poluição de anúncios e a lentidão nos aplicativos de transporte tradicionais. O foco primário é a **Experiência do Usuário (UX)**, garantindo acesso instantâneo às informações de transporte sem interrupções publicitárias.
 
-## Packaging and running the application
+Pensado desde o início como uma plataforma escalável, o projeto visa uso pessoal inicial com uma estrutura de engenharia preparada para futura comercialização e monetização alternativa (ex: modelos Freemium para recursos avançados, licenciamento B2B ou parcerias de geolocalização não invasivas).
 
-The application can be packaged using:
+## Funcionalidades Principais
 
-```shell script
-./mvnw package
-```
+* **Busca Direcionada por Linha:** Rastreamento em tempo real de linhas específicas.
+* **Monitoramento Multi-Linhas:** Capacidade de processar e enviar dados para o front-end renderizar múltiplas frotas simultaneamente, categorizadas por cores distintas no mapa.
+* **Cálculo de ETA (Estimated Time of Arrival):** Processamento da distância entre os veículos em circulação e a geolocalização atual do usuário.
+* **Roteamento Inteligente:** Motor de rotas que sugere o melhor trajeto combinando mapeamento de ruas com a posição atualizada da frota em tempo real.
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+## Arquitetura
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+O sistema foi desenhado utilizando princípios de **Clean Architecture**, garantindo total desacoplamento entre as regras de negócio, os serviços externos e as portas de entrada da aplicação. Isso permite que a API seja resiliente e de fácil manutenção.
 
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/riobus-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Related Guides
-
-- REST ([guide](https://quarkus.io/guides/rest)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
-- REST Client ([guide](https://quarkus.io/guides/rest-client)): Call REST services
-- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Document your REST APIs with OpenAPI - comes with Swagger UI
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
-
-## Provided Code
-
-### REST Client
-
-Invoke different services through REST with JSON
-
-[Related guide section...](https://quarkus.io/guides/rest-client)
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+```text
+br.com.technosou
+├── api          (Porta de Entrada: Controllers/Resources consumidos pelo React Native)
+│    ├── controller
+│    └── dto     (Modelos de dados limpos, sanitizados e otimizados para o Mobile)
+│
+├── core         (Coração do sistema: Regras de negócio puras e agnósticas)
+│    ├── model   (Entidades de domínio do transporte público)
+│    └── service (Lógica complexa: cálculo de tempo, filtragem de linhas, cruzamento de matriz de distância)
+│
+└── infra        (Porta de Saída: Integrações com o mundo externo)
+     ├── client  (REST Clients para consumo de APIs de terceiros, como o Data.Rio)
+     └── dto     (Mapeamento bruto dos dados provenientes da prefeitura)

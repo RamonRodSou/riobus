@@ -1,0 +1,20 @@
+quarkus:
+  rest-client:
+    datario-api:
+      url: "https://dados.mobilidade.rio"
+      enable-compression: true
+riobus:
+  geo:
+    raio-terra-km: 6371
+  api:
+    limite-onibus: 5
+    intervalo-cache: "60s"
+
+nginx:
+  image: nginx:latest
+  ports:
+    - "80:80"
+  volumes:
+    - ./docker/nginx/nginx.conf
+  depends_on:
+    - backend
