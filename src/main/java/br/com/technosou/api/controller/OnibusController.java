@@ -1,6 +1,7 @@
 package br.com.technosou.api.controller;
 
 import br.com.technosou.core.model.Onibus;
+import br.com.technosou.core.service.ImportacaoService;
 import br.com.technosou.core.service.OnibusService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -17,10 +18,22 @@ public class OnibusController {
     @Inject
     OnibusService onibusService;
 
+    @Inject
+    ImportacaoService importacaoService;
+
     @GET
     @Path("/{linha}")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Onibus> buscarPorLinha(@PathParam("linha") String linha) {
         return onibusService.buscarOnibusPorLinha(linha);
     }
+
+
+    @GET
+    @Path("/admin/importar")
+    public String dispararImportacao() {
+        importacaoService.importar();
+        return "Importação iniciada... Verifique o console do Quarkus.";
+    }
+
 }

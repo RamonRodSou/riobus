@@ -3,6 +3,24 @@ quarkus:
     datario-api:
       url: "https://dados.mobilidade.rio"
       enable-compression: true
+
+  datasource:
+    db-kind: postgresql
+    username: postgres
+    password: "1234"
+    jdbc:
+      url: jdbc:postgresql://localhost:5433/postgres
+      statement-batch-size: 50
+      max-lifetime: 1800s
+
+  hibernate-orm:
+    database:
+      generation: update
+    log:
+      sql: true
+  transaction-manager:
+    default-transaction-timeout: 3600s
+
 riobus:
   geo:
     raio-terra-km: 6371
