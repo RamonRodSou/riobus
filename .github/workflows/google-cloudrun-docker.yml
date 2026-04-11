@@ -1,0 +1,54 @@
+name: 'Automated Platform Deploy'
+
+on:
+  push:
+    branches:
+      - 'main'
+
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
+jobs:
+  build-and-deploy:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Checkout do Código'
+        uses: 'actions/checkout@v4'
+
+      - id: 'auth'
+        name: 'Autenticação no GCP (WIF)'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
+          service_account: '${{ vars.GCP_SA_EMAIL }}'
+
+      - name: 'Configurar Login do Docker no Artifact Registry'
+        run: |-
+          gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev
+
+      - name: 'Build e Push da Imagem Docker'
+        run: |-
+          # Monta a URL completa da imagem usando a variável APP_NAME
+          IMAGE_URL="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}"
+          
+          # Constrói o container lendo o seu Dockerfile local
+          docker build -t $IMAGE_URL .
+          
+          # Envia a imagem para o Google Cloud Artifact Registry
+          docker push $IMAGE_URL
+
+      - name: 'Deploy no Cloud Run'
+        id: 'deploy'
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: '${{ vars.APP_NAME }}'
+          region: '${{ vars.GCP_REGION }}'
+          image: '${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}'
+          # Permite que seu app mobile consuma a API pela internet
+          flags: '--allow-unauthenticated'
+
+      - name: 'Sucesso'
+        run: |-
+          echo "Seu backend subiu com sucesso!"
+          echo "A URL pública (seu Gateway nativo) é: ${{ steps.deploy.outputs.url }}"
