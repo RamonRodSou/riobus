@@ -37,16 +37,24 @@ jobs:
 
       - name: 'Build e Push da Imagem Docker'
         run: |-
-          # 1. Compila o projeto e gera o JAR do Quarkus
+          # Esse echo vai nos mostrar o que o GitHub está vendo (sem mostrar a senha)
+          echo "Debug: Region is [${{ vars.GCP_REGION }}]"
+          echo "Debug: Project ID is [${{ vars.GCP_PROJECT_ID }}]"
+          echo "Debug: Repo is [${{ vars.GCP_ARTIFACT_REPO }}]"
+          
+          # Se o Project ID estiver vazio aqui, o erro vai aparecer no log
+          if [ -z "${{ vars.GCP_PROJECT_ID }}" ]; then 
+            echo "ERRO: O GCP_PROJECT_ID nao foi encontrado nas Variables do GitHub!"
+            exit 1
+          fi
+          
+          # Gera o JAR do Quarkus
           mvn clean package -DskipTests
-
-          # 2. Define a URL da imagem (usando seu repo apps-backend)
+          
+          # Monta a URL
           IMAGE_URL="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}"
           
-          # 3. Constroi a imagem usando o seu Dockerfile
           docker build -t $IMAGE_URL .
-          
-          # 4. Envia a imagem para o Artifact Registry
           docker push $IMAGE_URL
 
       - name: 'Deploy no Cloud Run'
