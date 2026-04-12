@@ -1,15 +1,15 @@
 quarkus:
   rest-client:
     datario-api:
-      url: ${REST_CLIENT_API_BUS:https://dados.mobilidade.rio}
+      url: ${API_DATARIO_URL:https://dados.mobilidade.rio}
       enable-compression: true
 
   datasource:
     db-kind: postgresql
-    username: ${QUARKUS_DATASOURCE_USERNAME:postgres}
-    password: ${QUARKUS_DATASOURCE_PASSWORD:1234}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:1234}
     jdbc:
-      url: ${QUARKUS_DATASOURCE_JDBC_URL:jdbc:postgresql://${CONEXAO_BD}:5433/postgres}
+      url: ${DB_URL:jdbc:postgresql://localhost:5432/riobus}
       statement-batch-size: 50
       max-lifetime: 1800s
 
