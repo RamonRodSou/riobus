@@ -35,8 +35,10 @@ br.com.technosou
 │
 ├── core         (Coração do sistema: Regras de negócio puras e agnósticas)
 │    ├── model   (Entidades de domínio do transporte público)
-│    └── service (Lógica complexa: cálculo de tempo, filtragem de linhas, cruzamento de matriz de distância)
+│    ├── service (Lógica complexa: cálculo de tempo, filtragem de linhas, cruzamento de matriz de distância)
+     └── util    (Métodos re-utilizaveis)
 │
 └── infra        (Porta de Saída: Integrações com o mundo externo)
      ├── client  (REST Clients para consumo de APIs de terceiros, como o Data.Rio)
-     └── dto     (Mapeamento bruto dos dados provenientes da prefeitura)
+     ├── dto     (Mapeamento bruto dos dados provenientes da prefeitura)
+     └── entity  (Entidade para comunicação com banco de dados)

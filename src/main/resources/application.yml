@@ -9,7 +9,7 @@ quarkus:
     username: ${QUARKUS_DATASOURCE_USERNAME:postgres}
     password: ${QUARKUS_DATASOURCE_PASSWORD:1234}
     jdbc:
-      url: ${QUARKUS_DATASOURCE_JDBC_URL:jdbc:postgresql://localhost:5433/postgres}
+      url: ${QUARKUS_DATASOURCE_JDBC_URL:jdbc:postgresql://${CONEXAO_BD}:5433/postgres}
       statement-batch-size: 50
       max-lifetime: 1800s
 
@@ -27,12 +27,3 @@ riobus:
   api:
     limite-onibus: 5
     intervalo-cache: "60s"
-
-nginx:
-  image: nginx:latest
-  ports:
-    - "80:80"
-  volumes:
-    - ./docker/nginx/nginx.conf
-  depends_on:
-    - backend
