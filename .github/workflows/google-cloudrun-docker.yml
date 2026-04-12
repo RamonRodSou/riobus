@@ -27,20 +27,18 @@ jobs:
         name: 'Autenticacao no GCP (WIF)'
         uses: 'google-github-actions/auth@v2'
         with:
-          token_format: 'access_token' # Gera o token necessario para o login do Docker
+          token_format: 'access_token'
           workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
           service_account: '${{ vars.GCP_SA_EMAIL }}'
           project_id: '${{ vars.GCP_PROJECT_ID }}'
 
-      - name: 'Login no Artifact Registry'
-        uses: 'docker/login-action@v3'
-        with:
-          registry: '${{ vars.GCP_REGION }}-docker.pkg.dev'
-          username: 'oauth2accesstoken'
-          password: '${{ steps.auth.outputs.access_token }}'
+      - name: 'Configurar Login do Docker no Artifact Registry'
+        run: |-
+          gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev
 
       - name: 'Build e Push da Imagem Docker'
         run: |-
+          # Validacao de seguranca para evitar erro de URL //
           if [ -z "${{ vars.GCP_PROJECT_ID }}" ]; then echo "ERRO: GCP_PROJECT_ID vazio"; exit 1; fi
           
           # 1. Compila o JAR do Quarkus
@@ -49,8 +47,11 @@ jobs:
           # 2. Define a URL da imagem
           IMAGE_URL="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}"
           
-          # 3. Build e Push
+          # 3. Build apontando para o Dockerfile do Quarkus (JVM mode)
+          # Se o seu arquivo tiver outro nome, ajuste aqui:
           docker build -f src/main/docker/Dockerfile.jvm -t $IMAGE_URL .
+          
+          # 4. Push para o Google Cloud
           docker push $IMAGE_URL
 
       - name: 'Deploy no Cloud Run'
@@ -60,7 +61,7 @@ jobs:
           service: '${{ vars.APP_NAME }}'
           region: '${{ vars.GCP_REGION }}'
           image: '${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}'
-          flags: '--allow-unauthenticated --network=apps-vpc --subnet=subnet-us-central1 --vpc-egress=private-ranges-only'
+          flags: '--allow-unauthenticated --network=apps-vpc --subnet=estudo-subrede --vpc-egress=private-ranges-only'
           env_vars: |-
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
