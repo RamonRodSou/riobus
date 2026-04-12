@@ -68,6 +68,7 @@ jobs:
             DB_URL=jdbc:postgresql://${{ secrets.DB_INTERNAL_IP }}:5432/riobus
             DB_GENERATION=none
             LOG_SQL=false
+            QUARKUS_HTTP_HOST=0.0.0.0
 
       - name: 'Sucesso'
         run: |-
