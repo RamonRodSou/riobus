@@ -37,8 +37,13 @@ jobs:
 
       - name: 'Build e Push da Imagem Docker'
         run: |-
+          # PASSO DE DEBUG: Vamos ver quem e o culpado
+          java -version
+          mvn -version
+          
           IMAGE_URL="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}"
           
+          # Gera o JAR do Quarkus
           mvn clean package -DskipTests
           
           docker build -t $IMAGE_URL .
