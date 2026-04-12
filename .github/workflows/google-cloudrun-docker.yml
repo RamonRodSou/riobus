@@ -13,15 +13,23 @@ jobs:
   build-and-deploy:
     runs-on: 'ubuntu-latest'
     steps:
-      - name: 'Checkout do Código'
+      - name: 'Checkout do Codigo'
         uses: 'actions/checkout@v4'
 
+      - name: 'Configurar Java 21'
+        uses: 'actions/setup-java@v4'
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
       - id: 'auth'
-        name: 'Autenticação no GCP (WIF)'
+        name: 'Autenticacao no GCP (WIF)'
         uses: 'google-github-actions/auth@v2'
         with:
           workload_identity_provider: '${{ vars.GCP_WIF_PROVIDER }}'
           service_account: '${{ vars.GCP_SA_EMAIL }}'
+          project_id: '${{ vars.GCP_PROJECT_ID }}'
 
       - name: 'Configurar Login do Docker no Artifact Registry'
         run: |-
@@ -29,16 +37,11 @@ jobs:
 
       - name: 'Build e Push da Imagem Docker'
         run: |-
-          # Monta a URL completa da imagem usando a variável APP_NAME
           IMAGE_URL="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}"
           
-          # Ignorando os testes no CI/CD por enquanto (como conversamos antes)
           mvn clean package -DskipTests
           
-          # Constrói o container lendo o seu Dockerfile local
           docker build -t $IMAGE_URL .
-          
-          # Envia a imagem para o Google Cloud Artifact Registry
           docker push $IMAGE_URL
 
       - name: 'Deploy no Cloud Run'
@@ -48,10 +51,7 @@ jobs:
           service: '${{ vars.APP_NAME }}'
           region: '${{ vars.GCP_REGION }}'
           image: '${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}'
-          # A MÁGICA DA REDE ACONTECE AQUI: Libera internet e conecta na sua VPC privada!
-          # ATENÇÃO: Substitua 'subnet-us-central1' pelo nome exato da sub-rede que você criou.
           flags: '--allow-unauthenticated --network=apps-vpc --subnet=subnet-us-central1 --vpc-egress=private-ranges-only'
-          # A MÁGICA DO 12-FACTOR APP (Variáveis de Ambiente):
           env_vars: |-
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
@@ -62,4 +62,4 @@ jobs:
       - name: 'Sucesso'
         run: |-
           echo "Seu backend subiu com sucesso!"
-          echo "A URL pública (seu Gateway nativo) é: ${{ steps.deploy.outputs.url }}"
+          echo "A URL publica e: ${{ steps.deploy.outputs.url }}"
