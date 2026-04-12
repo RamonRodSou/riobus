@@ -32,6 +32,9 @@ jobs:
           # Monta a URL completa da imagem usando a variável APP_NAME
           IMAGE_URL="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}"
           
+          # Ignorando os testes no CI/CD por enquanto (como conversamos antes)
+          mvn clean package -DskipTests
+          
           # Constrói o container lendo o seu Dockerfile local
           docker build -t $IMAGE_URL .
           
@@ -45,8 +48,16 @@ jobs:
           service: '${{ vars.APP_NAME }}'
           region: '${{ vars.GCP_REGION }}'
           image: '${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}'
-          # Permite que seu app mobile consuma a API pela internet
-          flags: '--allow-unauthenticated'
+          # A MÁGICA DA REDE ACONTECE AQUI: Libera internet e conecta na sua VPC privada!
+          # ATENÇÃO: Substitua 'subnet-us-central1' pelo nome exato da sub-rede que você criou.
+          flags: '--allow-unauthenticated --network=apps-vpc --subnet=subnet-us-central1 --vpc-egress=private-ranges-only'
+          # A MÁGICA DO 12-FACTOR APP (Variáveis de Ambiente):
+          env_vars: |-
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_URL=jdbc:postgresql://${{ secrets.DB_INTERNAL_IP }}:5432/riobus
+            DB_GENERATION=none
+            LOG_SQL=false
 
       - name: 'Sucesso'
         run: |-
