@@ -37,16 +37,16 @@ jobs:
 
       - name: 'Build e Push da Imagem Docker'
         run: |-
-          # PASSO DE DEBUG: Vamos ver quem e o culpado
-          java -version
-          mvn -version
-          
+          # 1. Compila o projeto e gera o JAR do Quarkus
+          mvn clean package -DskipTests
+
+          # 2. Define a URL da imagem (usando seu repo apps-backend)
           IMAGE_URL="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}"
           
-          # Gera o JAR do Quarkus
-          mvn clean package -DskipTests
-          
+          # 3. Constroi a imagem usando o seu Dockerfile
           docker build -t $IMAGE_URL .
+          
+          # 4. Envia a imagem para o Artifact Registry
           docker push $IMAGE_URL
 
       - name: 'Deploy no Cloud Run'
@@ -56,7 +56,9 @@ jobs:
           service: '${{ vars.APP_NAME }}'
           region: '${{ vars.GCP_REGION }}'
           image: '${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}'
+          # Conexao com a rede privada para o banco de dados
           flags: '--allow-unauthenticated --network=apps-vpc --subnet=subnet-us-central1 --vpc-egress=private-ranges-only'
+          # Variaveis de ambiente para o Quarkus
           env_vars: |-
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
@@ -66,5 +68,5 @@ jobs:
 
       - name: 'Sucesso'
         run: |-
-          echo "Seu backend subiu com sucesso!"
-          echo "A URL publica e: ${{ steps.deploy.outputs.url }}"
+          echo "Deploy finalizado com sucesso!"
+          echo "URL do Cloud Run: ${{ steps.deploy.outputs.url }}"
