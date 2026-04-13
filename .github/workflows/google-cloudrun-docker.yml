@@ -63,11 +63,11 @@ jobs:
           image: '${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/${{ vars.APP_NAME }}:${{ github.sha }}'
           flags: '--allow-unauthenticated --network=apps-vpc --subnet=estudo-subrede --vpc-egress=private-ranges-only'
           env_vars: |-
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DB_URL=jdbc:postgresql://${{ secrets.DB_INTERNAL_IP }}:5432/riobus
-            DB_GENERATION=none
-            LOG_SQL=false
+            QUARKUS_DATASOURCE_USERNAME=${{ secrets.DB_USER }}
+            QUARKUS_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
+            QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://${{ secrets.DB_INTERNAL_IP }}:5432/riobus
+            QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=none
+            QUARKUS_HIBERNATE_ORM_LOG_SQL=false
             QUARKUS_HTTP_HOST=0.0.0.0
 
       - name: 'Sucesso'
